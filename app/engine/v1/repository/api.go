@@ -38,7 +38,20 @@ func GetEndpoints(apiId string) []models.EndPoint {
 		endPoints = append(endPoints, endPoint)
 	}
 
+	connection.Close()
 	return endPoints
+}
 
+func AddApi(api models.Api) string {
+	connection := DbConnection()
+	statement, _ := connection.Prepare("INSERT INTO api (id, url,created,updated,active) VALUES (?, ?,?,?,?)")
+	_, err :=statement.Exec(api.Id,api.Url,api.CreatedAt,api.UpdatedAt,api.Active)
 
+if err!=nil{
+	log.Error(exceptions.Exception{TypeOfException: "ADDAPIDB", Message: err.Error(), Timestamp: time.Now()})
+
+	return "error"
+}
+
+	return "success"
 }
