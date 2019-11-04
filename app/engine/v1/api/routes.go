@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/hexad3cimal/mockapi/app/engine/v1/dto"
 	"github.com/hexad3cimal/mockapi/app/engine/v1/models"
 	"github.com/hexad3cimal/mockapi/app/engine/v1/repository"
 	"github.com/hexad3cimal/mockapi/app/engine/v1/responses"
@@ -54,8 +55,8 @@ func AddEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	endPoint := models.EndPoint{}
-	jsonError := json.Unmarshal(body, &endPoint)
+	endPointWrapper := dto.EndpointWrapper{}
+	jsonError := json.Unmarshal(body, &endPointWrapper)
 	if jsonError != nil {
 		w.WriteHeader(400)
 		errorResponse, _ := json.Marshal(responses.Response{ResponseType: "error", Message:jsonError.Error(), Code: "400"})
@@ -63,7 +64,7 @@ func AddEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api,err := repository.GetApi(endPoint.ApiId)
+	api,err := repository.GetApi(endPointWrapper.ApiId)
 	 if err != nil{
 	 	w.WriteHeader(400)
 		 errorResponse, _ := json.Marshal(responses.Response{ResponseType: "error", Message:"error occured", Code: "500"})
@@ -73,7 +74,11 @@ func AddEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	if api != (models.Api{}){
 
+		for _, endpoint := range endPointWrapper.Endpoints {
+			endpoint.ApiId = endPointWrapper.ApiId
+			repository.AddEndpoint(endpoint)
 
+		}
 
 	}
 
