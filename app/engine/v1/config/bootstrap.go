@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/hexad3cimal/mockapi/app/engine/v1/api"
 	"github.com/hexad3cimal/mockapi/app/engine/v1/exceptions"
+	"github.com/hexad3cimal/mockapi/app/engine/v1/utils"
 	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"net/http"
@@ -17,7 +18,7 @@ type App struct {
 }
 
 func (a *App) Initialize() {
-	dbConnection := DbConnection()
+	dbConnection := utils.DbConnection()
 	statement, _ := dbConnection.Prepare("CREATE TABLE IF NOT EXISTS api (id VARCHAR(50) PRIMARY KEY, url TEXT, created DATE,updated DATE, active INTEGER)")
 	_,err := statement.Exec()
 	if err!= nil{
@@ -25,24 +26,16 @@ func (a *App) Initialize() {
 	}
 	dbConnection.Close()
 	a.Router = mux.NewRouter()
-	a.initializeRoutes()
+	a.InitializeRoutes()
 }
 
 
-func (a *App) initializeRoutes() {
-	a.Router.HandleFunc("/api", api.PostApi).Methods("POST")
+func (a *App) InitializeRoutes() {
+	a.Router.HandleFunc("/api", api.AddApi).Methods("POST")
+	a.Router.HandleFunc("/endpoint", api.AddEndpoint).Methods("POST")
 }
 
 
-func DbConnection() *sql.DB {
-	db, err := sql.Open("sqlite3", "./mock-api-test.db")
-
-	if err != nil {
-		log.Error(exceptions.Exception{TypeOfException: "DBEXCEPTION", Message: err.Error(), Timestamp: time.Now()})
-	}
-
-	return db
-}
 
 func (a *App) Run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, a.Router))
